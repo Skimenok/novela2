@@ -1,0 +1,209 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0a0a0a;
+  color: #00ff99;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.game {
+  width: 90%;
+  max-width: 600px;
+  border: 2px solid #00ff99;
+  padding: 20px;
+  border-radius: 10px;
+  background: #111;
+  box-sizing: border-box;
+}
+
+.text {
+  min-height: 120px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: break-word; /* Исправление кривого текста на мобилке */
+}
+
+button {
+  background: #00ff99;
+  color: #111;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 16px;
+  touch-action: manipulation; /* Для лучшего touch */
+}
+
+button:hover {
+  background: #00cc77;
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+progress {
+  width: 100%;
+  height: 20px;
+  margin: 10px 0;
+}
+
+#timer {
+  font-size: 20px;
+  color: #ff0000;
+}
+
+.pieces > div, .drop-zone {
+  border: 1px solid #00ff99;
+  padding: 10px;
+  margin: 5px;
+  cursor: move;
+  user-select: none; /* Предотвращает выделение текста */
+  touch-action: none; /* Для touch drag */
+}
+
+.drop-zone {
+  min-height: 100px;
+  background: #222;
+}
+
+.btn {
+  width: 120px;
+  height: 60px;
+  margin: 15px;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.btn.red { background: #ff4444 !important; color: white; }
+.btn.green { background: #44ff44 !important; color: black; }
+.btn.blue { background: #4444ff !important; color: white; }
+
+.glow {
+  animation: glow 0.8s ease-in-out;
+  transform: scale(1.2);
+}
+
+@keyframes glow {
+  0% { 
+    box-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 40px #00ff99, 0 0 60px #00ff99;
+    transform: scale(1.3);
+  }
+  100% { 
+    box-shadow: 0 0 20px #00ff99;
+    transform: scale(1.2);
+  }
+}
+
+input[type="text"] {
+  background: #222;
+  color: #00ff99;
+  border: 1px solid #00ff99;
+  padding: 10px;
+  margin: 10px 0;
+  width: 80%;
+  font-size: 16px;
+}
+
+#status {
+  font-size: 18px;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+#simon-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* Исправление расположения кнопок на фото */
+}
+
+#arcade-canvas {
+  border: 1px solid #00ff99;
+  background: #000;
+  display: block;
+  margin: 0 auto; /* Центр на ПК */
+}
+
+/* Responsive media queries */
+@media (max-width: 600px) {
+  .game {
+    padding: 10px;
+  }
+
+  .text {
+    font-size: 14px;
+    min-height: 100px;
+  }
+
+  button {
+    padding: 15px 25px; /* Больше для touch */
+    font-size: 18px;
+    margin: 10px 5px;
+  }
+
+  .btn {
+    width: 100px;
+    height: 50px;
+    margin: 10px;
+    font-size: 14px;
+  }
+
+  input[type="text"] {
+    font-size: 18px;
+    padding: 15px;
+  }
+
+  .pieces > div {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  .drop-zone {
+    min-height: 150px;
+  }
+
+  #timer {
+    font-size: 24px;
+  }
+
+  progress {
+    height: 30px;
+  }
+
+  #arcade-canvas {
+    width: 100%;
+    height: 300px;
+  }
+}
+
+@media (max-width: 400px) {
+  .btn {
+    width: 80px;
+    height: 40px;
+    margin: 8px;
+    font-size: 12px;
+  }
+
+  button#start-simon {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+}
