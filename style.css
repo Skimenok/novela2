@@ -1,146 +1,70 @@
 body {
-  margin: 0;
-  padding: 0;
-  background: #000;
-  color: #00ff99;
+  margin: 0; padding: 0; background: #000; color: #00ff99;
   font-family: 'Courier New', monospace;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: flex; justify-content: center; align-items: center;
   min-height: 100vh;
 }
-
 .game {
-  width: 90%;
-  max-width: 650px;
-  border: 3px solid #00ff99;
-  padding: 30px;
-  border-radius: 16px;
-  background: #0a0a0a;
+  width: 90%; max-width: 650px; border: 3px solid #00ff99;
+  padding: 30px; border-radius: 16px; background: #0a0a0a;
   box-shadow: 0 0 40px #00ff9950;
 }
-
-.text {
-  min-height: 130px;
-  font-size: 19px;
-  line-height: 1.7;
-  margin-bottom: 25px;
-  word-break: break-word;
-}
-
+.text { min-height: 130px; font-size: 19px; line-height: 1.7; margin-bottom: 25px; word-break: break-word; }
 button {
-  background: #00ff99;
-  color: #000;
-  border: none;
-  padding: 14px 30px;
-  margin: 8px;
-  border-radius: 10px;
-  font-size: 18px;
-  cursor: pointer;
-  transition: 0.3s;
+  background: #00ff99; color: #000; border: none;
+  padding: 14px 30px; margin: 8px; border-radius: 10px;
+  font-size: 18px; cursor: pointer; transition: 0.3s; touch-action: manipulation;
 }
-
 button:hover { background: #00cc77; transform: scale(1.05); }
-
 progress { width: 100%; height: 32px; margin: 15px 0; }
 
 .drag-piece {
-  display: block;
-  padding: 16px 20px;
-  margin: 10px 0;
-  background: #002211;
-  border: 2px solid #00ff99;
-  border-radius: 10px;
-  cursor: move;
-  user-select: none;
-  font-size: 18px;
-  width: 100%;
-  box-sizing: border-box;
-  text-align: left;
-  touch-action: none;
+  display: block; padding: 16px 20px; margin: 10px 0;
+  background: #002211; border: 2px solid #00ff99; border-radius: 10px;
+  cursor: move; user-select: none; font-size: 18px; width: 100%;
+  box-sizing: border-box; text-align: left; touch-action: none;
 }
-
 .drop-zone {
-  min-height: 180px;
-  border: 3px dashed #00ff99;
-  background: #001a0f;
-  margin-top: 25px;
-  border-radius: 12px;
-  padding: 20px;
-  font-size: 20px;
-  line-height: 2;
-  display: flex;
-  flex-direction: column;
+  min-height: 180px; border: 3px dashed #00ff99; background: #001a0f;
+  margin-top: 25px; border-radius: 12px; padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
 }
 
-#simon-buttons {
+/* Simon — кнопки всегда по центру и текст по центру */
+#simonButtons {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 25px;
-  margin-top: 30px;
+  justify-content: center;
+  gap: 20px;
+  margin: 30px 0;
 }
-
 .btn {
-  width: 140px;
-  height: 100px;
-  border-radius: 16px;
-  font-size: 22px;
-  font-weight: bold;
-  touch-action: manipulation;
+  width: 140px; height: 140px; border-radius: 20px;
+  font-size: 22px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; color: white; user-select: none;
+  touch-action: manipulation; flex-direction: column;
 }
-
-.btn.red { background: #ff0044; color: white; }
+.btn.red { background: #ff0044; }
 .btn.green { background: #00ff44; color: black; }
-.btn.blue { background: #0044ff; color: white; }
+.btn.blue { background: #0044ff; }
 
-.glow {
-  animation: glow 0.7s ease-in-out;
-  transform: scale(1.25);
-  box-shadow: 0 0 60px #00ff99;
-}
+.glow { animation: glow 0.7s ease-in-out; transform: scale(1.25); box-shadow: 0 0 60px #00ff99; }
+@keyframes glow { 0%,100% { box-shadow: 0 0 20px #00ff99; } 50% { box-shadow: 0 0 80px #00ff99; } }
 
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px #00ff99; }
-  50% { box-shadow: 0 0 80px #00ff99; }
-}
+#canvas { border: 3px solid #00ff99; background: #000; display: block; margin: 20px auto; width: 100%; max-width: 400px; aspect-ratio: 1/1; }
+#timer { text-align: center; font-size: 28px; margin: 10px 0; }
 
-#canvas {
-  border: 3px solid #00ff99;
-  background: #000;
-  display: block;
-  margin: 20px auto;
-  width: 100%;
-  max-width: 400px;
-  height: auto;
-  aspect-ratio: 1 / 1;
-}
+.hint-btn { background: #004433 !important; color: #00ff99 !important; font-size: 16px; padding: 10px 20px; margin-top: 10px; }
+.hint-text { margin-top: 15px; font-style: italic; color: #00cc77; font-size: 17px; }
 
-#timer {
-  text-align: center;
-  font-size: 28px;
-  margin: 10px 0;
-}
-
-#hint-text {
-  margin-top: 10px;
-  font-size: 16px;
-  color: #ffcc00;
-  padding: 10px;
-  background: #002211;
-  border-radius: 8px;
-  border: 1px solid #ffcc00;
-}
-
+/* АДАПТИВ — КАК У ТЕБЯ БЫЛО ИЗНАЧАЛЬНО */
 @media (max-width: 600px) {
+  .game { padding: 20px; }
+  .text { font-size: 17px; }
+  button { font-size: 16px; padding: 12px 18px; }
   .drag-piece { font-size: 16px; padding: 12px; }
-  .drop-zone { padding: 10px; font-size: 18px; }
-  #pieces { display: flex; flex-direction: column; align-items: center; }
-  .btn { width: 120px; height: 90px; font-size: 20px; }
-  #simon-buttons { flex-direction: column; align-items: center; gap: 15px; }
+  .btn { width: 110px; height: 110px; font-size: 18px; }
   #canvas { max-width: 300px; }
+  #simonButtons { gap: 15px; }
 }
-
-
-
-
