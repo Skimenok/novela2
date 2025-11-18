@@ -239,9 +239,12 @@ function startMinigame(type, win, lose) {
     textEl.innerHTML = "Собери код в правильном порядке:";
     choicesEl.innerHTML = `
       <div id="pieces" style="margin:20px 0;">
-        <div class="drag-piece" draggable="true" data-id="1">function hack() {</div>
-        <div class="drag-piece" draggable="true" data-id="2">  alert("Взлом!");</div>
-        <div class="drag-piece" draggable="true" data-id="3">}</div>
+        <div class="drag-piece" draggable="true" data-id="1">function fetchData(url) {</div>
+        <div class="drag-piece" draggable="true" data-id="2">  return fetch(url)</div>
+        <div class="drag-piece" draggable="true" data-id="3">    .then(response => response.json())</div>
+        <div class="drag-piece" draggable="true" data-id="4">    .then(data => console.log(data))</div>
+        <div class="drag-piece" draggable="true" data-id="5">    .catch(error => console.error(error));</div>
+        <div class="drag-piece" draggable="true" data-id="6">}</div>
       </div>
 
       <div id="dropZone" class="drop-zone">← Перетащи сюда по порядку</div>
@@ -250,33 +253,96 @@ function startMinigame(type, win, lose) {
     const pieces = document.querySelectorAll(".drag-piece");
     const zone = document.getElementById("dropZone");
     let order = [];
+    let draggedPiece = null;
 
+    // Desktop drag events
     pieces.forEach((piece) => {
       piece.addEventListener("dragstart", (e) => {
+        draggedPiece = piece;
         e.dataTransfer.setData("text/plain", piece.dataset.id);
         piece.style.opacity = "0.5";
       });
       piece.addEventListener("dragend", () => {
         piece.style.opacity = "1";
+        draggedPiece = null;
       });
     });
 
     zone.addEventListener("dragover", (e) => e.preventDefault());
     zone.addEventListener("drop", (e) => {
       e.preventDefault();
-      const id = e.dataTransfer.getData("text/plain");
-      const piece = document.querySelector(`[data-id="${id}"]`);
-      if (piece && !zone.contains(piece)) {
+      if (draggedPiece && !zone.contains(draggedPiece)) {
         if (order.length === 0) {
           zone.innerHTML = "";
         }
-        zone.appendChild(piece);
-        order.push(id);
-        if (order.length === 3) {
+        zone.appendChild(draggedPiece);
+        order.push(draggedPiece.dataset.id);
+        if (order.length === 6) {
           energy += 4;
-          showScene(order.join("") === "123" ? win : lose);
+          showScene(order.join("") === "123456" ? win : lose);
         }
       }
+    });
+
+    // Touch events for mobile
+    pieces.forEach((piece) => {
+      piece.addEventListener(
+        "touchstart",
+        (e) => {
+          draggedPiece = piece;
+          piece.style.opacity = "0.5";
+          e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      piece.addEventListener(
+        "touchmove",
+        (e) => {
+          if (draggedPiece) {
+            const touch = e.touches[0];
+            draggedPiece.style.position = "absolute";
+            draggedPiece.style.left = `${
+              touch.clientX - draggedPiece.offsetWidth / 2
+            }px`;
+            draggedPiece.style.top = `${
+              touch.clientY - draggedPiece.offsetHeight / 2
+            }px`;
+          }
+          e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      piece.addEventListener("touchend", (e) => {
+        if (draggedPiece) {
+          const touch = e.changedTouches[0];
+          const dropRect = zone.getBoundingClientRect();
+          if (
+            touch.clientX >= dropRect.left &&
+            touch.clientX <= dropRect.right &&
+            touch.clientY >= dropRect.top &&
+            touch.clientY <= dropRect.bottom
+          ) {
+            if (!zone.contains(draggedPiece)) {
+              if (order.length === 0) {
+                zone.innerHTML = "";
+              }
+              zone.appendChild(draggedPiece);
+              order.push(draggedPiece.dataset.id);
+              if (order.length === 6) {
+                energy += 4;
+                showScene(order.join("") === "123456" ? win : lose);
+              }
+            }
+          }
+          draggedPiece.style.position = "";
+          draggedPiece.style.left = "";
+          draggedPiece.style.top = "";
+          draggedPiece.style.opacity = "1";
+          draggedPiece = null;
+        }
+      });
     });
   }
 
@@ -354,14 +420,8 @@ function startMinigame(type, win, lose) {
   }
 
   if (type === "arcade") {
-    textEl.innerHTML = "Выживи 20 секунд!<br>WASD или ФЫВАЦ";
-    choicesEl.innerHTML = `<canvas id="canvas" width="400" height="400"></canvas><div id="timer" style="text-align:center;font-size:28px;margin:10px">20</div>
-      <div style="display:flex; justify-content:space-around; margin:20px 0;">
-        <button style="padding:20px; font-size:24px;" onmousedown="keys['w']=true; keys['ц']=true" onmouseup="keys['w']=false; keys['ц']=false" ontouchstart="keys['w']=true; keys['ц']=true" ontouchend="keys['w']=false; keys['ц']=false">↑</button>
-        <button style="padding:20px; font-size:24px;" onmousedown="keys['a']=true; keys['ф']=true" onmouseup="keys['a']=false; keys['ф']=false" ontouchstart="keys['a']=true; keys['ф']=true" ontouchend="keys['a']=false; keys['ф']=false">←</button>
-        <button style="padding:20px; font-size:24px;" onmousedown="keys['s']=true; keys['ы']=true" onmouseup="keys['s']=false; keys['ы']=false" ontouchstart="keys['s']=true; keys['ы']=true" ontouchend="keys['s']=false; keys['ы']=false">↓</button>
-        <button style="padding:20px; font-size:24px;" onmousedown="keys['d']=true; keys['в']=true" onmouseup="keys['d']=false; keys['в']=false" ontouchstart="keys['d']=true; keys['в']=true" ontouchend="keys['d']=false; keys['в']=false">→</button>
-      </div>`;
+    textEl.innerHTML = "Выживи 60 секунд!<br>WASD, ФЫВАЦ или стрелки";
+    choicesEl.innerHTML = `<canvas id="canvas" width="400" height="400"></canvas><div id="timer" style="text-align:center;font-size:28px;margin:10px">60</div>`;
     const canvas = document.getElementById("canvas");
     if (window.innerWidth < 600) {
       canvas.width = 300;
@@ -370,7 +430,7 @@ function startMinigame(type, win, lose) {
     const ctx = canvas.getContext("2d");
     let x = canvas.width / 2,
       y = canvas.height - 60,
-      timeLeft = 20,
+      timeLeft = 60,
       viruses = [],
       alive = true;
     const timerEl = document.getElementById("timer");
@@ -385,6 +445,27 @@ function startMinigame(type, win, lose) {
       (e) => (keys[e.key.toLowerCase()] = false),
     );
 
+    // Add touch controls for mobile
+    canvas.addEventListener("touchstart", handleTouch, { passive: false });
+    canvas.addEventListener("touchmove", handleTouch, { passive: false });
+    canvas.addEventListener("touchend", () => (keys = {}), { passive: false });
+
+    function handleTouch(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const touchX = touch.clientX - rect.left;
+      const touchY = touch.clientY - rect.top;
+
+      // Simple directional control based on touch position
+      if (touchX < rect.width / 3) keys["a"] = true;
+      else if (touchX > (2 * rect.width) / 3) keys["d"] = true;
+      else keys["a"] = keys["d"] = false;
+      if (touchY < rect.height / 3) keys["w"] = true;
+      else if (touchY > (2 * rect.height) / 3) keys["s"] = true;
+      else keys["w"] = keys["s"] = false;
+    }
+
     setInterval(() => {
       if (alive)
         viruses.push({
@@ -398,17 +479,17 @@ function startMinigame(type, win, lose) {
       if (!alive) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (keys["a"] || keys["ф"]) x -= 6;
-      if (keys["d"] || keys["в"]) x += 6;
-      if (keys["w"] || keys["ц"]) y -= 6;
-      if (keys["s"] || keys["ы"]) y += 6;
+      if (keys["a"] || keys["ф"] || keys["arrowleft"]) x -= 6;
+      if (keys["d"] || keys["в"] || keys["arrowright"]) x += 6;
+      if (keys["w"] || keys["ц"] || keys["arrowup"]) y -= 6;
+      if (keys["s"] || keys["ы"] || keys["arrowdown"]) y += 6;
       x = Math.max(30, Math.min(canvas.width - 30, x));
       y = Math.max(30, Math.min(canvas.height - 30, y));
 
       ctx.fillStyle = "#00ff99";
       ctx.fillRect(x - 25, y - 25, 50, 50);
 
-      viruses = viruses.filter((v) => v.y < canvas.height + 40); // Clean up off-screen viruses
+      viruses = viruses.filter((v) => v.y < canvas.height + 40);
       viruses.forEach((v) => {
         v.y += v.s;
         ctx.fillStyle = "#ff0066";
