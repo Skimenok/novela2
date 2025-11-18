@@ -238,7 +238,7 @@ function startMinigame(type, win, lose) {
   if (type === "drag") {
     textEl.innerHTML = "Собери код в правильном порядке:";
     choicesEl.innerHTML = `
-      <div id="pieces" style="margin:20px 0;">
+      <div id="pieces" style="margin:20px 0; display: flex; flex-direction: column;">
         <div class="drag-piece" draggable="true" data-id="1">function fetchData(url) {</div>
         <div class="drag-piece" draggable="true" data-id="2">  return fetch(url)</div>
         <div class="drag-piece" draggable="true" data-id="3">    .then(response => response.json())</div>
@@ -246,17 +246,16 @@ function startMinigame(type, win, lose) {
         <div class="drag-piece" draggable="true" data-id="5">    .catch(error => console.error(error));</div>
         <div class="drag-piece" draggable="true" data-id="6">}</div>
       </div>
-
       <div id="dropZone" class="drop-zone">← Перетащи сюда по порядку</div>
+      <button id="submitCode" style="width:100%; margin-top:20px;">Отправить</button>
     `;
 
-    const pieces = document.querySelectorAll(".drag-piece");
+    const piecesContainer = document.getElementById("pieces");
     const zone = document.getElementById("dropZone");
-    let order = [];
+    const submitBtn = document.getElementById("submitCode");
     let draggedPiece = null;
 
-    // Desktop drag events
-    pieces.forEach((piece) => {
+    const makeDraggable = (piece) => {
       piece.addEventListener("dragstart", (e) => {
         draggedPiece = piece;
         e.dataTransfer.setData("text/plain", piece.dataset.id);
@@ -266,26 +265,8 @@ function startMinigame(type, win, lose) {
         piece.style.opacity = "1";
         draggedPiece = null;
       });
-    });
 
-    zone.addEventListener("dragover", (e) => e.preventDefault());
-    zone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      if (draggedPiece && !zone.contains(draggedPiece)) {
-        if (order.length === 0) {
-          zone.innerHTML = "";
-        }
-        zone.appendChild(draggedPiece);
-        order.push(draggedPiece.dataset.id);
-        if (order.length === 6) {
-          energy += 4;
-          showScene(order.join("") === "123456" ? win : lose);
-        }
-      }
-    });
-
-    // Touch events for mobile
-    pieces.forEach((piece) => {
+      // Touch events
       piece.addEventListener(
         "touchstart",
         (e) => {
@@ -314,36 +295,88 @@ function startMinigame(type, win, lose) {
         { passive: false },
       );
 
-      piece.addEventListener("touchend", (e) => {
-        if (draggedPiece) {
-          const touch = e.changedTouches[0];
-          const dropRect = zone.getBoundingClientRect();
-          if (
-            touch.clientX >= dropRect.left &&
-            touch.clientX <= dropRect.right &&
-            touch.clientY >= dropRect.top &&
-            touch.clientY <= dropRect.bottom
-          ) {
-            if (!zone.contains(draggedPiece)) {
-              if (order.length === 0) {
-                zone.innerHTML = "";
-              }
-              zone.appendChild(draggedPiece);
-              order.push(draggedPiece.dataset.id);
-              if (order.length === 6) {
-                energy += 4;
-                showScene(order.join("") === "123456" ? win : lose);
-              }
-            }
+      piece.addEventListener("touchend", (e) => handleTouchEnd(e));
+    };
+
+    // Make all initial pieces draggable
+    Array.from(piecesContainer.children).forEach(makeDraggable);
+
+    const handleDrop = (e, targetContainer) => {
+      e.preventDefault();
+      if (draggedPiece) {
+        // Clear placeholder if target is zone and empty
+        if (targetContainer === zone && targetContainer.children.length === 0) {
+          targetContainer.innerHTML = "";
+        }
+
+        const dropY =
+          e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+        let closest = null;
+        let closestOffset = Number.NEGATIVE_INFINITY;
+
+        Array.from(targetContainer.children).forEach((child) => {
+          if (child === draggedPiece) return;
+          const box = child.getBoundingClientRect();
+          const offset = dropY - box.top - box.height / 2;
+          if (offset < 0 && offset > closestOffset) {
+            closestOffset = offset;
+            closest = child;
           }
+        });
+
+        if (closest) {
+          targetContainer.insertBefore(draggedPiece, closest);
+        } else {
+          targetContainer.appendChild(draggedPiece);
+        }
+
+        makeDraggable(draggedPiece); // Ensure draggable
+
+        draggedPiece.style.position = "";
+        draggedPiece.style.left = "";
+        draggedPiece.style.top = "";
+        draggedPiece.style.opacity = "1";
+        draggedPiece = null;
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      if (draggedPiece) {
+        const touch = e.changedTouches[0];
+        [zone, piecesContainer].forEach((container) => {
+          const rect = container.getBoundingClientRect();
+          if (
+            touch.clientX >= rect.left &&
+            touch.clientX <= rect.right &&
+            touch.clientY >= rect.top &&
+            touch.clientY <= rect.bottom
+          ) {
+            handleDrop(e, container);
+          }
+        });
+        if (draggedPiece) {
+          // If not dropped, reset position
           draggedPiece.style.position = "";
           draggedPiece.style.left = "";
           draggedPiece.style.top = "";
           draggedPiece.style.opacity = "1";
           draggedPiece = null;
         }
-      });
+      }
+    };
+
+    [zone, piecesContainer].forEach((container) => {
+      container.addEventListener("dragover", (e) => e.preventDefault());
+      container.addEventListener("drop", (e) => handleDrop(e, container));
     });
+
+    submitBtn.onclick = () => {
+      const order = Array.from(zone.children)
+        .map((child) => child.dataset.id)
+        .join("");
+      energy += 4;
+      showScene(order === "123456" ? win : lose);
+    };
   }
 
   if (type === "simon") {
@@ -420,8 +453,17 @@ function startMinigame(type, win, lose) {
   }
 
   if (type === "arcade") {
-    textEl.innerHTML = "Выживи 60 секунд!<br>WASD, ФЫВАЦ или стрелки";
-    choicesEl.innerHTML = `<canvas id="canvas" width="400" height="400"></canvas><div id="timer" style="text-align:center;font-size:28px;margin:10px">60</div>`;
+    textEl.innerHTML =
+      "Выживи 60 секунд!<br>Двигайся влево/вправо: A/D, Ф/В, стрелки";
+    let mobileControls = "";
+    if (window.innerWidth < 600) {
+      mobileControls = `
+        <div style="display:flex; justify-content:space-around; margin:20px 0;">
+          <button style="padding:20px; font-size:24px;" id="leftBtn">←</button>
+          <button style="padding:20px; font-size:24px;" id="rightBtn">→</button>
+        </div>`;
+    }
+    choicesEl.innerHTML = `<canvas id="canvas" width="400" height="400"></canvas><div id="timer" style="text-align:center;font-size:28px;margin:10px">60</div>${mobileControls}`;
     const canvas = document.getElementById("canvas");
     if (window.innerWidth < 600) {
       canvas.width = 300;
@@ -445,25 +487,42 @@ function startMinigame(type, win, lose) {
       (e) => (keys[e.key.toLowerCase()] = false),
     );
 
-    // Add touch controls for mobile
-    canvas.addEventListener("touchstart", handleTouch, { passive: false });
-    canvas.addEventListener("touchmove", handleTouch, { passive: false });
-    canvas.addEventListener("touchend", () => (keys = {}), { passive: false });
+    // Mobile drag control
+    let touchStartX = 0;
+    canvas.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+        touchStartX = e.touches[0].clientX;
+      },
+      { passive: false },
+    );
+    canvas.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+        const touchX = e.touches[0].clientX;
+        x += (touchX - touchStartX) / 2; // Adjust sensitivity
+        touchStartX = touchX;
+        x = Math.max(30, Math.min(canvas.width - 30, x));
+      },
+      { passive: false },
+    );
 
-    function handleTouch(e) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
-
-      // Simple directional control based on touch position
-      if (touchX < rect.width / 3) keys["a"] = true;
-      else if (touchX > (2 * rect.width) / 3) keys["d"] = true;
-      else keys["a"] = keys["d"] = false;
-      if (touchY < rect.height / 3) keys["w"] = true;
-      else if (touchY > (2 * rect.height) / 3) keys["s"] = true;
-      else keys["w"] = keys["s"] = false;
+    // Mobile buttons if present
+    if (window.innerWidth < 600) {
+      document
+        .getElementById("leftBtn")
+        .addEventListener("touchstart", () => (keys["a"] = true));
+      document
+        .getElementById("leftBtn")
+        .addEventListener("touchend", () => (keys["a"] = false));
+      document
+        .getElementById("rightBtn")
+        .addEventListener("touchstart", () => (keys["d"] = true));
+      document
+        .getElementById("rightBtn")
+        .addEventListener("touchend", () => (keys["d"] = false));
     }
 
     setInterval(() => {
@@ -481,10 +540,8 @@ function startMinigame(type, win, lose) {
 
       if (keys["a"] || keys["ф"] || keys["arrowleft"]) x -= 6;
       if (keys["d"] || keys["в"] || keys["arrowright"]) x += 6;
-      if (keys["w"] || keys["ц"] || keys["arrowup"]) y -= 6;
-      if (keys["s"] || keys["ы"] || keys["arrowdown"]) y += 6;
       x = Math.max(30, Math.min(canvas.width - 30, x));
-      y = Math.max(30, Math.min(canvas.height - 30, y));
+      // y is fixed, no up/down
 
       ctx.fillStyle = "#00ff99";
       ctx.fillRect(x - 25, y - 25, 50, 50);
